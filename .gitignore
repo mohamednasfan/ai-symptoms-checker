@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Models
+# model/model.pkl (keeping it if small, but usually ignored)
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Symptom Checker | Healthcare Intelligence</title>
+  <meta name="description" content="Describe your symptoms in plain language and get an AI-powered disease prediction, doctor specialty recommendations, and health advice." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #060b18;
+      --surface: #0d1526;
+      --glass:   rgba(255,255,255,0.04);
+      --border:  rgba(255,255,255,0.08);
+      --accent:  #3b82f6;
+      --accent2: #8b5cf6;
+      --teal:    #06b6d4;
+      --green:   #10b981;
+      --yellow:  #f59e0b;
+      --red:     #ef4444;
+      --text:    #f0f6ff;
+      --muted:   #8b95a8;
+      --radius:  16px;
+      --shadow:  0 8px 40px rgba(0,0,0,0.5);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59,130,246,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 90%, rgba(139,92,246,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 60% 40%, rgba(6,182,212,0.07) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .wrapper {
+      position: relative; z-index: 1;
+      max-width: 840px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    /* ── Header ───────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .logo-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 20px;
+      font-size: 13px; font-weight: 600;
+      color: var(--teal);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      backdrop-filter: blur(10px);
+    }
+
+    .logo-dot {
+      width: 8px; height: 8px;
+      background: var(--teal);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      font-weight: 800;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #e0f2fe 0%, #93c5fd 40%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 14px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 540px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── Feature Pills ────────────── */
+    .feature-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .feature-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12.5px; font-weight: 500;
+      color: var(--muted);
+      backdrop-filter: blur(8px);
+    }
+
+    /* ── Card ─────────────────────── */
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+      animation: fadeUp 0.7s ease both;
+    }
+
+    .section-label {
+      font-size: 11.5px; font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+
+    /* ── Textarea ─────────────────── */
+    .input-wrapper { position: relative; margin-bottom: 20px; }
+
+    #symptomText {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      line-height: 1.7;
+      padding: 18px 20px;
+      resize: vertical;
+      min-height: 140px;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      outline: none;
+    }
+
+    #symptomText::placeholder { color: var(--muted); }
+
+    #symptomText:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+
+    .char-count {
+      position: absolute;
+      bottom: 10px; right: 14px;
+      font-size: 11px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    /* ── Symptom Tag Chips ────────── */
+    .tags-area { margin-bottom: 24px; }
+    .tags-row { display: flex; flex-wrap: wrap; gap: 8px; min-height: 36px; padding: 4px 0; }
+
+    .tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(59,130,246,0.15);
+      border: 1px solid rgba(59,130,246,0.35);
+      color: #93c5fd;
+      border-radius: 999px;
+      padding: 5px 14px;
+      font-size: 13px; font-weight: 500;
+      animation: tagPop 0.25s cubic-bezier(0.34,1.56,0.64,1) both;
+      cursor: pointer;
+    }
+
+    .tag:hover { background: rgba(59,130,246,0.25); }
+    .tag-icon { font-size: 10px; opacity: 0.7; }
+
+    /* ── Suggest Input ────────────── */
+    .suggest-wrapper { position: relative; margin-bottom: 24px; }
+
+    #suggestInput {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #suggestInput::placeholder { color: var(--muted); }
+    #suggestInput:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(6,182,212,0.12); }
+
+    #suggestList {
+      position: absolute;
+      top: calc(100% + 6px); left: 0; right: 0;
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+
+    #suggestList.open { display: block; }
+
+    .suggest-item {
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .suggest-item:last-child { border-bottom: none; }
+    .suggest-item:hover, .suggest-item.active { background: rgba(59,130,246,0.15); color: #93c5fd; }
+
+    /* ── Example Pills ────────────── */
+    .examples { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+
+    .example-pill {
+      background: rgba(139,92,246,0.12);
+      border: 1px solid rgba(139,92,246,0.25);
+      color: #c4b5fd;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12.5px; font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .example-pill:hover { background: rgba(139,92,246,0.25); transform: translateY(-1px); }
+
+    /* ── Button ───────────────────── */
+    #predictBtn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      box-shadow: 0 4px 20px rgba(59,130,246,0.35);
+    }
+
+    #predictBtn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(59,130,246,0.45); }
+    #predictBtn:active:not(:disabled) { transform: scale(0.98); }
+    #predictBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    #predictBtn .btn-shimmer {
+      position: absolute; inset: 0;
+      background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%);
+      transform: translateX(-100%);
+    }
+
+    #predictBtn:hover .btn-shimmer { animation: shimmer 0.6s ease forwards; }
+
+    .spinner {
+      display: none; width: 20px; height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+
+    .btn-text { display: block; }
+    #predictBtn.loading .btn-text { display: none; }
+    #predictBtn.loading .spinner { display: block; }
+
+    /* ── Divider ──────────────────── */
+    .divider { height: 1px; background: var(--border); margin: 36px 0; }
+
+    /* ── Error Box ────────────────── */
+    .error-box {
+      margin-top: 16px;
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 12px;
+      padding: 16px 20px;
+      color: #fca5a5;
+      font-size: 14px;
+      line-height: 1.6;
+      display: none;
+    }
+    .error-box.visible { display: block; }
+
+    /* ── Result Panel ─────────────── */
+    #resultPanel { display: none; animation: fadeUp 0.5s ease both; }
+    #resultPanel.visible { display: block; }
+
+    /* ── Primary Result ───────────── */
+    .result-primary {
+      background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(6,182,212,0.06) 100%);
+      border: 1px solid rgba(16,185,129,0.25);
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .result-primary::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--green), var(--teal));
+    }
+
+    .result-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .result-label { font-size: 11px; color: #6ee7b7; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+    .result-disease { font-size: 1.6rem; font-weight: 800; color: #d1fae5; line-height: 1.2; }
+
+    .confidence-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(16,185,129,0.2);
+      border: 1px solid rgba(16,185,129,0.4);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px; font-weight: 700;
+      color: var(--green);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .conf-bar-wrap { margin-bottom: 18px; }
+    .conf-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .conf-bar { height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
+    .conf-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--teal)); border-radius: 999px; width: 0%; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); }
+
+    .matched-title { margin-bottom: 8px; font-size: 11.5px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
+    .matched-list { display: flex; flex-wrap: wrap; gap: 7px; }
+    .matched-chip { background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.25); color: #67e8f9; border-radius: 999px; padding: 4px 12px; font-size: 12.5px; font-weight: 500; }
+
+    /* ── Specialty Card ───────────── */
+    .specialty-card {
+      background: linear-gradient(135deg, rgba(139,92,246,0.1) 0%, rgba(59,130,246,0.08) 100%);
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .specialty-icon-wrap {
+      width: 64px; height: 64px;
+      background: rgba(139,92,246,0.15);
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .specialty-content {}
+
+    .specialty-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #a78bfa; margin-bottom: 4px; }
+    .specialty-name { font-size: 1.2rem; font-weight: 800; color: #ede9fe; margin-bottom: 4px; }
+    .specialty-sub { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Health Suggestions ───────── */
+    .suggestions-card {
+      background: linear-gradient(135deg, rgba(6,182,212,0.07) 0%, rgba(16,185,129,0.05) 100%);
+      border: 1px solid rgba(6,182,212,0.2);
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .suggestions-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .suggestions-header-icon {
+      width: 36px; height: 36px;
+      background: rgba(6,182,212,0.15);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .suggestions-title { font-size: 1rem; font-weight: 700; color: #cffafe; }
+
+    .suggestion-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+
+    .suggestion-item {
+      display: flex; gap: 12px;
+      align-items: flex-start;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #e0f7fa;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .suggestion-item:hover { background: rgba(6,182,212,0.08); border-color: rgba(6,182,212,0.2); }
+
+    .suggestion-num {
+      width: 22px; height: 22px;
+      background: rgba(6,182,212,0.2);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      color: #67e8f9;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── Top Predictions Grid ─────── */
+    .predictions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .pred-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: default;
+    }
+
+    .pred-card:hover { border-color: rgba(139,92,246,0.4); transform: translateY(-2px); }
+
+    .pred-rank { font-size: 11px; font-weight: 700; color: var(--accent2); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+    .pred-name { font-size: 0.9rem; font-weight: 600; color: var(--text); margin-bottom: 12px; line-height: 1.3; }
+    .pred-bar { height: 5px; background: rgba(255,255,255,0.07); border-radius: 999px; overflow: hidden; margin-bottom: 6px; }
+    .pred-bar-fill { height: 100%; border-radius: 999px; width: 0%; transition: width 1.4s cubic-bezier(0.4,0,0.2,1); }
+    .pred-card:nth-child(1) .pred-bar-fill { background: linear-gradient(90deg, #10b981, #06b6d4); }
+    .pred-card:nth-child(2) .pred-bar-fill { background: linear-gradient(90deg, #3b82f6, #8b5cf6); }
+    .pred-card:nth-child(3) .pred-bar-fill { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+    .pred-pct { font-size: 12px; font-weight: 600; color: var(--muted); }
+
+    /* ── Disclaimer ───────────────── */
+    .disclaimer {
+      background: rgba(245,158,11,0.07);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .disclaimer-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .disclaimer p { font-size: 13px; color: #fcd34d; line-height: 1.6; }
+
+    /* ── Stats ────────────────────── */
+    .stats-bar {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-top: 48px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item { text-align: center; }
+
+    .stat-value {
+      font-size: 1.5rem; font-weight: 800;
+      background: linear-gradient(135deg, #93c5fd, #c4b5fd);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .footer { text-align: center; margin-top: 40px; font-size: 12.5px; color: var(--muted); }
+
+    /* ── Animations ───────────────── */
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-20px) } to { opacity:1; transform:translateY(0) } }
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(20px)  } to { opacity:1; transform:translateY(0) } }
+    @keyframes tagPop   { from { opacity:0; transform:scale(0.7) } to { opacity:1; transform:scale(1) } }
+    @keyframes pulse    { 0%,100% { opacity:1 } 50% { opacity:0.35 } }
+    @keyframes spin     { to { transform:rotate(360deg) } }
+    @keyframes shimmer  { to { transform:translateX(200%) } }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+
+    @media (max-width: 600px) {
+      .card { padding: 22px 16px; }
+      .result-header { flex-direction: column; }
+      .result-disease { font-size: 1.3rem; }
+      .specialty-card { flex-direction: column; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-badge">
+      <span class="logo-dot"></span>
+      AI-Powered Health Assistant
+    </div>
+    <h1>Describe Symptoms,<br>Get Instant AI Insights</h1>
+    <p class="subtitle">
+      Type your symptoms in plain language. Our AI predicts the likely condition,
+      recommends the right doctor specialty, and gives you personalized health guidance.
+    </p>
+    <div class="feature-pills">
+      <span class="feature-pill">🔬 Disease Prediction</span>
+      <span class="feature-pill">👨‍⚕️ Doctor Specialty</span>
+      <span class="feature-pill">💡 Health Suggestions</span>
+      <span class="feature-pill">📊 Confidence Score</span>
+    </div>
+  </div>
+
+  <!-- Main Card -->
+  <div class="card">
+
+    <div class="section-label">Describe how you feel</div>
+    <div class="input-wrapper">
+      <textarea
+        id="symptomText"
+        placeholder="e.g. I've been having high fever, severe joint pain, and headache for the past 3 days. I also feel very fatigued and my eyes are yellowing..."
+        maxlength="800"
+      ></textarea>
+      <span class="char-count" id="charCount">0 / 800</span>
+    </div>
+
+    <div class="section-label">Or quickly add symptoms</div>
+    <div class="suggest-wrapper">
+      <input id="suggestInput" type="text" placeholder="🔍  Search and add symptoms (e.g. fever, joint pain, vomiting…)" autocomplete="off" />
+      <div id="suggestList"></div>
+    </div>
+
+    <div class="tags-area" id="tagsArea" style="display:none">
+      <div class="section-label">Added symptoms</div>
+      <div class="tags-row" id="tagsRow"></div>
+    </div>
+
+    <div class="section-label">Try an example</div>
+    <div class="examples">
+      <span class="example-pill" data-text="I have high fever, joint pain, severe headache, and chills with rash">🦟 Dengue-like</span>
+      <span class="example-pill" data-text="I feel fatigue, weight loss, breathlessness, and persistent cough with phlegm">🫁 Respiratory</span>
+      <span class="example-pill" data-text="I have yellowing of eyes, dark urine, loss of appetite, nausea, and abdominal pain">🫀 Liver Issue</span>
+      <span class="example-pill" data-text="I feel restlessness, sweating, fast heart rate, and dizziness with chest pain">❤️ Cardiac</span>
+      <span class="example-pill" data-text="I have itching, skin rash, and nodal skin eruptions with redness">🧴 Skin Issue</span>
+    </div>
+
+    <button id="predictBtn">
+      <span class="btn-shimmer"></span>
+      <span class="btn-text">⚡ Analyze Symptoms &amp; Get Recommendations</span>
+      <div class="spinner"></div>
+    </button>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <!-- Results -->
+    <div id="resultPanel">
+      <div class="divider"></div>
+
+      <!-- Primary Disease Prediction -->
+      <div class="result-primary" id="primaryResult">
+        <div class="result-header">
+          <div>
+            <div class="result-label">Most Likely Condition</div>
+            <div class="result-disease" id="primaryDisease">—</div>
+          </div>
+          <div class="confidence-badge">
+            <span>●</span> <span id="primaryPct">—</span>
+          </div>
+        </div>
+
+        <div class="conf-bar-wrap">
+          <div class="conf-bar-label">
+            <span>Prediction Confidence</span>
+            <span id="barPct">—</span>
+          </div>
+          <div class="conf-bar">
+            <div class="conf-bar-fill" id="confBarFill"></div>
+          </div>
+        </div>
+
+        <div class="matched-title">Detected Symptoms</div>
+        <div class="matched-list" id="matchedSymptoms"></div>
+      </div>
+
+      <!-- Recommended Doctor Specialty -->
+      <div class="specialty-card" id="specialtyCard">
+        <div class="specialty-icon-wrap" id="specialtyIcon">👨‍⚕️</div>
+        <div class="specialty-content">
+          <div class="specialty-eyebrow">Recommended Doctor Specialty</div>
+          <div class="specialty-name" id="specialtyName">—</div>
+          <div class="specialty-sub">Book an appointment with this specialist for a proper diagnosis and treatment plan.</div>
+        </div>
+      </div>
+
+      <!-- Health Suggestions -->
+      <div class="suggestions-card" id="suggestionsCard">
+        <div class="suggestions-header">
+          <div class="suggestions-header-icon">💡</div>
+          <div class="suggestions-title">Preliminary Health Suggestions</div>
+        </div>
+        <ul class="suggestion-list" id="suggestionList"></ul>
+      </div>
+
+      <!-- All Top Predictions -->
+      <div class="section-label" style="margin-bottom:14px">All Predictions (Ranked)</div>
+      <div class="predictions-grid" id="predictionsGrid"></div>
+
+      <!-- Disclaimer -->
+      <div class="disclaimer">
+        <span class="disclaimer-icon">⚠️</span>
+        <p><strong>Medical Disclaimer:</strong> This AI tool provides preliminary suggestions for informational purposes only. It is NOT a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-value">41</div><div class="stat-label">Diseases Covered</div></div>
+    <div class="stat-item"><div class="stat-value">132</div><div class="stat-label">Clinical Symptoms</div></div>
+    <div class="stat-item"><div class="stat-value">~99%</div><div class="stat-label">Model Accuracy</div></div>
+    <div class="stat-item"><div class="stat-value">15+</div><div class="stat-label">Doctor Specialties</div></div>
+  </div>
+
+  <div class="footer">Powered by RandomForest AI · SLIIT SE3020 Healthcare Platform · For educational use only</div>
+</div>
+
+<script>
+const ALL_SYMPTOMS = ["itching","skin_rash","nodal_skin_eruptions","continuous_sneezing","shivering","chills","joint_pain","stomach_pain","acidity","ulcers_on_tongue","muscle_wasting","vomiting","burning_micturition","spotting_ urination","fatigue","weight_gain","anxiety","cold_hands_and_feets","mood_swings","weight_loss","restlessness","lethargy","patches_in_throat","irregular_sugar_level","cough","high_fever","sunken_eyes","breathlessness","sweating","dehydration","indigestion","headache","yellowish_skin","dark_urine","nausea","loss_of_appetite","pain_behind_the_eyes","back_pain","constipation","abdominal_pain","diarrhoea","mild_fever","yellow_urine","yellowing_of_eyes","acute_liver_failure","fluid_overload","swelling_of_stomach","swelled_lymph_nodes","malaise","blurred_and_distorted_vision","phlegm","throat_irritation","redness_of_eyes","sinus_pressure","runny_nose","congestion","chest_pain","weakness_in_limbs","fast_heart_rate","pain_during_bowel_movements","pain_in_anal_region","bloody_stool","irritation_in_anus","neck_pain","dizziness","cramps","bruising","obesity","swollen_legs","swollen_blood_vessels","puffy_face_and_eyes","enlarged_thyroid","brittle_nails","swollen_extremeties","excessive_hunger","extra_marital_contacts","drying_and_tingling_lips","slurred_speech","knee_pain","hip_joint_pain","muscle_weakness","stiff_neck","swelling_joints","movement_stiffness","spinning_movements","loss_of_balance","unsteadiness","weakness_of_one_body_side","loss_of_smell","bladder_discomfort","foul_smell_of urine","continuous_feel_of_urine","passage_of_gases","internal_itching","toxic_look_(typhos)","depression","irritability","muscle_pain","altered_sensorium","red_spots_over_body","belly_pain","abnormal_menstruation","dischromic _patches","watering_from_eyes","increased_appetite","polyuria","family_history","mucoid_sputum","rusty_sputum","lack_of_concentration","visual_disturbances","receiving_blood_transfusion","receiving_unsterile_injections","coma","stomach_bleeding","distention_of_abdomen","history_of_alcohol_consumption","fluid_overload.1","blood_in_sputum","prominent_veins_on_calf","palpitations","painful_walking","pus_filled_pimples","blackheads","scurring","skin_peeling","silver_like_dusting","small_dents_in_nails","inflammatory_nails","blister","red_sore_around_nose","yellow_crust_ooze"];
+
+const READABLE = s => s.replace(/_/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g, c => c.toUpperCase());
+
+let addedSymptoms = new Set();
+let activeIdx = -1;
+
+const textarea     = document.getElementById('symptomText');
+const charCount    = document.getElementById('charCount');
+const suggestInput = document.getElementById('suggestInput');
+const suggestList  = document.getElementById('suggestList');
+const tagsArea     = document.getElementById('tagsArea');
+const tagsRow      = document.getElementById('tagsRow');
+const predictBtn   = document.getElementById('predictBtn');
+const resultPanel  = document.getElementById('resultPanel');
+const errorBox     = document.getElementById('errorBox');
+
+// Char counter
+textarea.addEventListener('input', () => {
+  charCount.textContent = `${textarea.value.length} / 800`;
+});
+
+// Symptom suggester
+suggestInput.addEventListener('input', () => {
+  const q = suggestInput.value.trim().toLowerCase();
+  suggestList.innerHTML = ''; activeIdx = -1;
+  if (!q) { suggestList.classList.remove('open'); return; }
+  const matches = ALL_SYMPTOMS.filter(s => READABLE(s).toLowerCase().includes(q)).slice(0, 12);
+  if (!matches.length) { suggestList.classList.remove('open'); return; }
+  matches.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'suggest-item';
+    div.textContent = READABLE(s);
+    div.dataset.sym = s;
+    div.addEventListener('mousedown', () => addSymptomTag(s));
+    suggestList.appendChild(div);
+  });
+  suggestList.classList.add('open');
+});
+
+suggestInput.addEventListener('keydown', e => {
+  const items = suggestList.querySelectorAll('.suggest-item');
+  if (e.key === 'ArrowDown') { activeIdx = Math.min(activeIdx+1, items.length-1); highlight(items); }
+  else if (e.key === 'ArrowUp') { activeIdx = Math.max(activeIdx-1, 0); highlight(items); }
+  else if (e.key === 'Enter' && activeIdx >= 0) { e.preventDefault(); addSymptomTag(items[activeIdx].dataset.sym); }
+  else if (e.key === 'Escape') { suggestList.classList.remove('open'); }
+});
+
+function highlight(items) { items.forEach((el, i) => el.classList.toggle('active', i === activeIdx)); }
+suggestInput.addEventListener('blur', () => setTimeout(() => suggestList.classList.remove('open'), 150));
+
+function addSymptomTag(sym) {
+  if (addedSymptoms.has(sym)) { suggestInput.value = ''; suggestList.classList.remove('open'); return; }
+  addedSymptoms.add(sym); renderTags();
+  suggestInput.value = ''; suggestList.classList.remove('open');
+}
+
+function removeSymptomTag(sym) { addedSymptoms.delete(sym); renderTags(); }
+
+function renderTags() {
+  tagsRow.innerHTML = '';
+  if (!addedSymptoms.size) { tagsArea.style.display = 'none'; return; }
+  tagsArea.style.display = 'block';
+  addedSymptoms.forEach(sym => {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.innerHTML = `${READABLE(sym)} <span class="tag-icon" title="Remove">✕</span>`;
+    tag.addEventListener('click', () => removeSymptomTag(sym));
+    tagsRow.appendChild(tag);
+  });
+}
+
+// Example pills
+document.querySelectorAll('.example-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    textarea.value = pill.dataset.text;
+    charCount.textContent = `${textarea.value.length} / 800`;
+    textarea.focus();
+  });
+});
+
+// Predict
+predictBtn.addEventListener('click', async () => {
+  const text = textarea.value.trim();
+  const extra = [...addedSymptoms];
+  if (!text && !extra.length) {
+    showError('Please describe your symptoms in the text box, or add symptoms using the search field.');
+    return;
+  }
+  const combined = text + ' ' + extra.map(s => READABLE(s)).join(', ');
+  setLoading(true); hideError(); resultPanel.classList.remove('visible');
+
+  try {
+    const res = await fetch('http://127.0.0.1:5000/predict/text', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: combined })
+    });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const data = await res.json();
+
+    if (!data.prediction) {
+      showError(data.message || 'No recognizable symptoms detected. Try being more specific — e.g. "high fever", "joint pain", "yellowing of eyes".');
+    } else {
+      renderResult(data);
+    }
+  } catch (err) {
+    showError('⚠️ Could not connect to the AI service. Make sure the Flask API is running on port 5000.');
+  } finally {
+    setLoading(false);
+  }
+});
+
+function renderResult(data) {
+  // Primary prediction
+  document.getElementById('primaryDisease').textContent = data.prediction;
+  document.getElementById('primaryPct').textContent = `${data.confidence}% Confidence`;
+  document.getElementById('barPct').textContent = `${data.confidence}%`;
+
+  const fill = document.getElementById('confBarFill');
+  fill.style.width = '0%';
+  setTimeout(() => { fill.style.width = `${data.confidence}%`; }, 100);
+
+  // Matched symptoms
+  const matchedDiv = document.getElementById('matchedSymptoms');
+  matchedDiv.innerHTML = '';
+  if (data.matched_symptoms?.length) {
+    data.matched_symptoms.forEach(sym => {
+      const chip = document.createElement('span');
+      chip.className = 'matched-chip';
+      chip.textContent = sym;
+      matchedDiv.appendChild(chip);
+    });
+  } else {
+    matchedDiv.innerHTML = '<span style="color:var(--muted);font-size:13px">Prediction based on contextual analysis.</span>';
+  }
+
+  // Specialty
+  document.getElementById('specialtyIcon').textContent = data.specialty_icon || '👨‍⚕️';
+  document.getElementById('specialtyName').textContent = data.recommended_specialty || 'General Physician';
+
+  // Health suggestions
+  const ul = document.getElementById('suggestionList');
+  ul.innerHTML = '';
+  (data.health_suggestions || []).forEach((tip, i) => {
+    const li = document.createElement('li');
+    li.className = 'suggestion-item';
+    li.innerHTML = `<span class="suggestion-num">${i+1}</span><span>${tip}</span>`;
+    ul.appendChild(li);
+  });
+
+  // Top predictions
+  const grid = document.getElementById('predictionsGrid');
+  grid.innerHTML = '';
+  const ranks = ['🥇 Top Match', '🥈 2nd Likely', '🥉 3rd Likely'];
+  (data.top_predictions || []).forEach((pred, i) => {
+    const card = document.createElement('div');
+    card.className = 'pred-card';
+    card.innerHTML = `
+      <div class="pred-rank">${ranks[i] || `#${i+1}`}</div>
+      <div class="pred-name">${pred.disease}</div>
+      <div class="pred-bar"><div class="pred-bar-fill" style="width:0%" data-w="${pred.confidence}"></div></div>
+      <div class="pred-pct">${pred.confidence}% confidence</div>
+    `;
+    grid.appendChild(card);
+  });
+  setTimeout(() => {
+    grid.querySelectorAll('.pred-bar-fill').forEach(el => { el.style.width = el.dataset.w + '%'; });
+  }, 150);
+
+  resultPanel.classList.add('visible');
+  resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function setLoading(on) {
+  predictBtn.disabled = on;
+  predictBtn.classList.toggle('loading', on);
+}
+
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.classList.add('visible');
+}
+
+function hideError() { errorBox.classList.remove('visible'); }
+</script>
+</body>
+</html>
